@@ -23,14 +23,11 @@ Public Module FlensVerwerk
     End Function
 
     Private Sub DetermineDimensions(task As FlangeTask)
-        ' HoekInX and HoekInY are interchangeable; do not use the suffix
-        ' to decide the saved part or the retrieved part.
         task.PartLength = task.Model.InputLength
         task.HoleParameter = If(task.IsSquare, "d134", "d87")
     End Sub
 
     Private Sub DetermineOutputPath(task As FlangeTask)
-            task.PartName
         Dim key As String =
             FormatDimension(task.Model.InputLength) & "x" &
             FormatDimension(task.Model.InputWidth) & "_" &
@@ -84,12 +81,20 @@ Public Module FlensVerwerk
             Return True
         End If
 
+        If Not IsVaultLocked(task.OutputPath) Then Return True
+
         If Not CheckOutFile(task.OutputPath) Then
             FlensGlobals.Show("Checkout failed: " & task.OutputPath)
             Return False
         End If
 
         Return True
+    End Function
+
+    'checked in by Vault = read-only on disk
+    Private Function IsVaultLocked(filePath As String) As Boolean
+        Dim attributes As System.IO.FileAttributes = System.IO.File.GetAttributes(filePath)
+        Return (attributes And System.IO.FileAttributes.ReadOnly) <> 0
     End Function
 
     Private Sub ConfigurePart(task As FlangeTask)

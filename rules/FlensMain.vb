@@ -27,9 +27,9 @@ Sub Main()
         Return
     End If
 
-    'ERROR: expression is not a method
-    If TypeOf ThisDoc Is AssemblyDocument Then
-        Dim assemblyDoc As AssemblyDocument = CType(ThisDoc, AssemblyDocument)
+    Dim doc As Document = ThisDoc.Document
+    If TypeOf doc Is AssemblyDocument Then
+        Dim assemblyDoc As AssemblyDocument = CType(doc, AssemblyDocument)
         Dim task As FlangeTask
 
         If model.IsSquare Then
@@ -74,7 +74,6 @@ Private Function CreateTask(asm As AssemblyDocument,
 End Function
 
 'vervangen component
-'Sub is de static van VB.NET
 Sub ReplaceComponent(task As FlangeTask)
     Component.Replace(task.OccurrenceName, task.OutputPath, False)
 End Sub
