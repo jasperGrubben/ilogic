@@ -1,6 +1,7 @@
 Imports Inventor
 
 Public Module FlensVerwerk
+'de functie die de uitwisseling doet
     Public Function ProcessTask(task As FlangeTask) As Boolean
         DetermineDimensions(task)
         DetermineOutputPath(task)

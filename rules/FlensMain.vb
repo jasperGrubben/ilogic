@@ -9,6 +9,7 @@ Sub Main()
     FlensGlobals.ThisApp = ThisApplication
     FlensGlobals.InitLogger(AddressOf Logger.Info, AddressOf Logger.Error)
 
+    'input naar model zetten
     Dim model As New Input With {
         .InputLength = Parameter("InputLengte"),
         .InputWidth = Parameter("InputBreedte"),
@@ -73,6 +74,7 @@ Private Function CreateTask(asm As AssemblyDocument,
 End Function
 
 'vervangen component
+'Sub is de static van VB.NET
 Sub ReplaceComponent(task As FlangeTask)
     Component.Replace(task.OccurrenceName, task.OutputPath, False)
 End Sub
