@@ -28,9 +28,8 @@ Public Module FlensSaveAssembly
                 existingAsm.Update()
                 existingAsm.Save()
                 FlensGlobals.LogInfo("Used existing assembly copy: " & targetPath)
-            Catch Exception "0x80004005 (E_FAIL)"
-                FlensGlobals.LogInfo("Het is weer eenszo ver. ")
-                existingAsm.Close(True)
+            Catch ex As Exception When ex.HResult = &H80004005
+                FlensGlobals.LogInfo("Inventor save failed with E_FAIL; skipping save to avoid corrupt state.")
             Finally
                 If existingAsm IsNot Nothing Then
                     existingAsm.Close(True)
