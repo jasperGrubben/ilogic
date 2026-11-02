@@ -1,7 +1,7 @@
 Imports Inventor
 
 Public Module FlensVerwerk
-'de functie die de uitwisseling doet
+    'de functie die de uitwisseling doet
     Public Function ProcessTask(task As FlangeTask) As Boolean
         DetermineDimensions(task)
         DetermineOutputPath(task)
@@ -23,16 +23,14 @@ Public Module FlensVerwerk
     End Function
 
     Private Sub DetermineDimensions(task As FlangeTask)
-        task.PartLength = If(task.PartName = "HoekInY",
-            task.Model.InputLength, task.Model.InputWidth)
-
-        task.HoleParameter = If(task.IsSquare OrElse task.PartName = "HoekInX",
-            "d134", "d87")
+        ' HoekInX and HoekInY are interchangeable; do not use the suffix
+        ' to decide the saved part or the retrieved part.
+        task.PartLength = task.Model.InputLength
+        task.HoleParameter = If(task.IsSquare, "d134", "d87")
     End Sub
 
     Private Sub DetermineOutputPath(task As FlangeTask)
         Dim key As String =
-            task.PartName & "_" &
             FormatDimension(task.Model.InputLength) & "x" &
             FormatDimension(task.Model.InputWidth) & "_" &
             FormatDimension(task.Model.InputFlangeHeight) & "_" &
@@ -47,14 +45,34 @@ Public Module FlensVerwerk
     End Function
 
     Private Function FindOccurrence(task As FlangeTask) As Boolean
-        For Each occ As ComponentOccurrence In task.Asm.ComponentDefinition.Occurrences
-            If occ.Name = task.PartName OrElse occ.Name.StartsWith(task.PartName & ":") Then
-                task.OccurrenceName = occ.Name
-                Return True
-            End If
+        Dim candidates As String() = GetOccurrenceCandidates(task.PartName)
+
+        For Each candidate As String In candidates
+            For Each occ As ComponentOccurrence In task.Asm.ComponentDefinition.Occurrences
+                If occ.Name = candidate OrElse occ.Name.StartsWith(candidate & ":") Then
+                    task.OccurrenceName = occ.Name
+                    Return True
+                End If
+            Next
         Next
 
         Return False
+    End Function
+
+    Private Function GetOccurrenceCandidates(partName As String) As String()
+        If String.IsNullOrWhiteSpace(partName) Then
+            Return New String() {String.Empty}
+        End If
+
+        If partName.EndsWith("X", StringComparison.OrdinalIgnoreCase) Then
+            Return New String() {partName, partName.Substring(0, partName.Length - 1) & "Y"}
+        End If
+
+        If partName.EndsWith("Y", StringComparison.OrdinalIgnoreCase) Then
+            Return New String() {partName, partName.Substring(0, partName.Length - 1) & "X"}
+        End If
+
+        Return New String() {partName}
     End Function
 
     Private Function CreateOrCheckOut(task As FlangeTask) As Boolean
