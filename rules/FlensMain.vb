@@ -1,10 +1,3 @@
-AddVbFile "L:\CAD_Conf2025\Inventor 2025\Design Data\iLogic\Flenzen\V2\ilogic\rules\FlensModel.vb"
-AddVbFile "L:\CAD_Conf2025\Inventor 2025\Design Data\iLogic\Flenzen\V2\ilogic\rules\FlensGlobals.vb"
-AddVbFile "L:\CAD_Conf2025\Inventor 2025\Design Data\iLogic\Flenzen\V2\ilogic\rules\FlensPaden.vb"
-AddVbFile "L:\CAD_Conf2025\Inventor 2025\Design Data\iLogic\Flenzen\V2\ilogic\rules\FlensVerwerk.vb"
-AddVbFile "L:\CAD_Conf2025\Inventor 2025\Design Data\iLogic\Flenzen\V2\ilogic\rules\FlensVault.vb"
-AddVbFile "L:\CAD_Conf2025\Inventor 2025\Design Data\iLogic\Flenzen\V2\ilogic\rules\FlensSaveAssembly.vb"
-
 Sub Main()
     FlensGlobals.ThisApp = ThisApplication
     FlensGlobals.InitLogger(AddressOf Logger.Info, AddressOf Logger.Error)
@@ -30,31 +23,35 @@ Sub Main()
         Return
     End If
 
-    Dim assemblyDoc As AssemblyDocument = CType(ThisDoc.Document, AssemblyDocument)
-    Dim task As FlangeTask
+    If TypeOf ThisDoc Is AssemblyDocument Then
+        Dim assemblyDoc As AssemblyDocument = CType(ThisDoc, AssemblyDocument)
+        Dim task As FlangeTask
 
-    'vierkant aansturing en rechthoek sturing
-    If model.IsSquare Then
-        task = CreateTask(assemblyDoc, model, paths.OutputDir, "HoekInY", paths.TemplateX)
-        If Not ProcessTask(task) Then Return
-        ReplaceComponent(task)
+        'vierkant aansturing en rechthoek sturing
+        If model.IsSquare Then
+            task = CreateTask(assemblyDoc, model, paths.OutputDir, "HoekInY", paths.TemplateX)
+            If Not ProcessTask(task) Then Return
+            ReplaceComponent(task)
 
-        task = CreateTask(assemblyDoc, model, paths.OutputDir, "HoekInX", paths.TemplateX)
-        If Not ProcessTask(task) Then Return
-        ReplaceComponent(task)
+            task = CreateTask(assemblyDoc, model, paths.OutputDir, "HoekInX", paths.TemplateX)
+            If Not ProcessTask(task) Then Return
+            ReplaceComponent(task)
+        Else
+            task = CreateTask(assemblyDoc, model, paths.OutputDir, "HoekInY", paths.TemplateY)
+            If Not ProcessTask(task) Then Return
+            ReplaceComponent(task)
+
+            task = CreateTask(assemblyDoc, model, paths.OutputDir, "HoekInX", paths.TemplateX)
+            If Not ProcessTask(task) Then Return
+            ReplaceComponent(task)
+        End If
+        'opslaan verwerking in het part
+        FlensSaveAssembly.SaveAssemblyCopy(assemblyDoc, paths.OutputDir, model)
+
+        FlensGlobals.Show("The components have been processed.")
     Else
-        task = CreateTask(assemblyDoc, model, paths.OutputDir, "HoekInY", paths.TemplateY)
-        If Not ProcessTask(task) Then Return
-        ReplaceComponent(task)
-
-        task = CreateTask(assemblyDoc, model, paths.OutputDir, "HoekInX", paths.TemplateX)
-        If Not ProcessTask(task) Then Return
-        ReplaceComponent(task)
+        FlensGlobals.Show("This rule must run from an assembly document.")
     End If
-    'opslaan verwerking in het part
-    FlensSaveAssembly.SaveAssemblyCopy(assemblyDoc, paths.OutputDir, model)
-
-    FlensGlobals.Show("The components have been processed.")
 End Sub
 
 'sturing naar de subs
