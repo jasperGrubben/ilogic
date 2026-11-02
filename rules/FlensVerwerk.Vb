@@ -30,6 +30,7 @@ Public Module FlensVerwerk
     End Sub
 
     Private Sub DetermineOutputPath(task As FlangeTask)
+            task.PartName
         Dim key As String =
             FormatDimension(task.Model.InputLength) & "x" &
             FormatDimension(task.Model.InputWidth) & "_" &

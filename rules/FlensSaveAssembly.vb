@@ -87,4 +87,13 @@ Public Module FlensSaveAssembly
         End If
         Return rounded.ToString("0.##", CultureInfo.InvariantCulture)
     End Function
+
+    'Nog niet toegepast, ivm mogelijk moeten uitchecken van al een bestande assembly
+    'Private Function CheckOut(task As FlangeAssembly) As Boolean
+    '    If Not CheckOutFile(task.OutputPath) Then
+    '         FlensGlobals.Show("Checkout failed: " & task.OutputPath)
+    '         Return False
+    '     End If
+    '     Return True
+    ' End Function
 End Module
