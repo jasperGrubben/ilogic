@@ -1,66 +1,63 @@
-﻿AddVbFile "L:\CAD_Conf2025\Inventor 2025\Design Data\iLogic\Flenzen\V2\ilogic\rules\FlensModel.vb"
+﻿Imports Inventor
+
+AddVbFile "L:\CAD_Conf2025\Inventor 2025\Design Data\iLogic\Flenzen\V2\ilogic\rules\FlensModel.vb"
 AddVbFile "L:\CAD_Conf2025\Inventor 2025\Design Data\iLogic\Flenzen\V2\ilogic\rules\FlensGlobals.vb"
 AddVbFile "L:\CAD_Conf2025\Inventor 2025\Design Data\iLogic\Flenzen\V2\ilogic\rules\FlensPaden.vb"
 AddVbFile "L:\CAD_Conf2025\Inventor 2025\Design Data\iLogic\Flenzen\V2\ilogic\rules\FlensVerwerk.vb"
 AddVbFile "L:\CAD_Conf2025\Inventor 2025\Design Data\iLogic\Flenzen\V2\ilogic\rules\FlensVault.vb"
 AddVbFile "L:\CAD_Conf2025\Inventor 2025\Design Data\iLogic\Flenzen\V2\ilogic\rules\FlensSaveAssembly.vb"
 
-Sub Main()
+class FlenzenMain()
     FlensGlobals.ThisApp = ThisApplication
     FlensGlobals.InitLogger(AddressOf Logger.Info, AddressOf Logger.Error)
 
-Dim x(3) As String = Parameter("meer")
-	For Each y as String in x
-		Logger.Info(y)
-	Next
+    Dim model As New Input With {
+        .InputLength = Parameter("InputLengte"),
+        .InputWidth = Parameter("InputBreedte"),
+        .InputFlangeHeight = Parameter("InputFlensHoogte"),
+        .InputFlangeWidth = Parameter("InputFlensBreedte"),
+        .InputHoleDiameter = Parameter("InputGatDia")
+    }
 
-'    Dim model As New Input With {
-'        .InputLength = Parameter("InputLengte"),
-'        .InputWidth = Parameter("InputBreedte"),
-'        .InputFlangeHeight = Parameter("InputFlensHoogte"),
-'        .InputFlangeWidth = Parameter("InputFlensBreedte"),
-'        .InputHoleDiameter = Parameter("InputGatDia")
-'    }
+    If Not model.IsValid Then
+        FlensGlobals.Show("Please enter all dimensions correctly.")
+        Return
+    End If
 
-'    If Not model.IsValid Then
-'        FlensGlobals.Show("Please enter all dimensions correctly.")
-'        Return
-'    End If
+    Dim paths As New FlensPaden()
+    If Not paths.Validate(model) Then
+        Return
+    End If
 
-'    Dim paths As New FlensPaden()
-'    If Not paths.Validate(model) Then
-'        Return
-'    End If
+    Dim doc As Document = ThisDoc.Document
+    If TypeOf doc Is AssemblyDocument Then
+        Dim assemblyDoc As AssemblyDocument = CType(doc, AssemblyDocument)
+        Dim task As FlangeTask
 
-'    Dim doc As Document = ThisDoc.Document
-'    If TypeOf doc Is AssemblyDocument Then
-'        Dim assemblyDoc As AssemblyDocument = CType(doc, AssemblyDocument)
-'        Dim task As FlangeTask
+        If model.IsSquare Then
+            task = CreateTask(assemblyDoc, model, paths.OutputDir, "HoekInY", paths.TemplateX)
+            If Not FlensVerwerk.ProcessTask(task) Then Return
+            ReplaceComponent(task)
 
-'        If model.IsSquare Then
-'            task = CreateTask(assemblyDoc, model, paths.OutputDir, "HoekInY", paths.TemplateX)
-'            If Not FlensVerwerk.ProcessTask(task) Then Return
-'            ReplaceComponent(task)
+            task = CreateTask(assemblyDoc, model, paths.OutputDir, "HoekInX", paths.TemplateX)
+            If Not FlensVerwerk.ProcessTask(task) Then Return
+            ReplaceComponent(task)
+        Else
+            task = CreateTask(assemblyDoc, model, paths.OutputDir, "HoekInY", paths.TemplateY)
+            If Not FlensVerwerk.ProcessTask(task) Then Return
+            ReplaceComponent(task)
 
-'            task = CreateTask(assemblyDoc, model, paths.OutputDir, "HoekInX", paths.TemplateX)
-'            If Not FlensVerwerk.ProcessTask(task) Then Return
-'            ReplaceComponent(task)
-'        Else
-'            task = CreateTask(assemblyDoc, model, paths.OutputDir, "HoekInY", paths.TemplateY)
-'            If Not FlensVerwerk.ProcessTask(task) Then Return
-'            ReplaceComponent(task)
+            task = CreateTask(assemblyDoc, model, paths.OutputDir, "HoekInX", paths.TemplateX)
+            If Not FlensVerwerk.ProcessTask(task) Then Return
+            ReplaceComponent(task)
+        End If
 
-'            task = CreateTask(assemblyDoc, model, paths.OutputDir, "HoekInX", paths.TemplateX)
-'            If Not FlensVerwerk.ProcessTask(task) Then Return
-'            ReplaceComponent(task)
-'        End If
-
-'        FlensSaveAssembly.SaveAssemblyCopy(assemblyDoc, paths.OutputDir, model)
-'        FlensGlobals.Show("The components have been processed.")
-'    Else
-'        FlensGlobals.Show("This rule must run from an assembly document.")
-'    End If
-End Sub
+        FlensSaveAssembly.SaveAssemblyCopy(assemblyDoc, paths.OutputDir, model)
+        FlensGlobals.Show("The components have been processed.")
+    Else
+        FlensGlobals.Show("This rule must run from an assembly document.")
+    End If
+End class
 
 'sturing naar de subs
 Private Function CreateTask(asm As AssemblyDocument,
