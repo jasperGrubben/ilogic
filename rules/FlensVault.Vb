@@ -23,7 +23,7 @@ Public Module FlensVault
             End If
             controlDefinition.Execute2(True)
             Return True
-        Catch ex As Exception
+        Catch ex As Exception 
             FlensGlobals.LogError("Vault " & action & " failed: " & value & " - " & ex.Message)
             Return False
         End Try
